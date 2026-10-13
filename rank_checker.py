@@ -44,6 +44,20 @@ def host_matches(link, domain):
     return host == domain or host.endswith("." + domain)
 
 
+def get_with_retry(requests, url, params, tries=3):
+    """Ulangi permintaan jika koneksi putus/terlalu lama (SerpAPI kadang lambat)."""
+    import time
+
+    for i in range(tries):
+        try:
+            return requests.get(url, params=params, timeout=90)
+        except (requests.Timeout, requests.ConnectionError) as e:
+            if i == tries - 1:
+                raise
+            print(f"  coba ulang ({i + 1}/{tries - 1}) karena: {e.__class__.__name__}")
+            time.sleep(10 * (i + 1))
+
+
 def check_keyword(keyword, cfg, api_key):
     import requests
 
@@ -60,7 +74,7 @@ def check_keyword(keyword, cfg, api_key):
             "start": page * 10,
             "api_key": api_key,
         }
-        r = requests.get("https://serpapi.com/search.json", params=params, timeout=60)
+        r = get_with_retry(requests, "https://serpapi.com/search.json", params)
         r.raise_for_status()
         data = r.json()
         if "error" in data:
