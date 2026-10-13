@@ -12,7 +12,7 @@
 | smart door lock semarang | **1** | — | — | 1 |  | [link](https://mitrateknik.co.id/produk/akses-pintu-semarang/paket-akses-kontrol-semarang) |
 | Alat patroli semarang | **> top 20** | — | — | — | www.tempo.co |  |
 | Alarm keamanan semarang | **5** | — | — | 5 | matrixfirealarm.com | [link](https://mitrateknik.co.id/produk/akses-pintu-semarang) |
-| Alarm kebarakan semarang | **3** | — | — | 3 | firealarm.id | [link](https://mitrateknik.co.id/component/content/article/jual-alarm-keamanan-semarang?catid=13&Itemid=101) |
+| Alarm kebakaran semarang | **3** | — | — | 3 | firealarm.id | [link](https://mitrateknik.co.id/component/content/article/jual-alarm-keamanan-semarang?catid=13&Itemid=101) |
 | Pintu otomatis semarang | **4** | — | — | 4 | pintuotomatissemarang.wordpress.com | [link](https://mitrateknik.co.id/index.php?option=com_sppagebuilder&view=page&id=175) |
 | Gate kartu perumahan semarang | **1** | — | — | 1 |  | [link](https://mitrateknik.co.id/blog-sistem-keamanan/gate-akses-perumahan-semarang/gate-akses-perumahan-semarang) |
 | Pintu pagar otomatis semarang | **4** | — | — | 4 | www.youtube.com | [link](https://mitrateknik.co.id/index.php?option=com_sppagebuilder&view=page&id=175) |

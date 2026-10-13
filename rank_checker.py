@@ -34,6 +34,11 @@ def load_keywords():
     return [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
 
 
+def kw_key(kw):
+    """Kunci pembanding kata kunci: abaikan huruf besar/kecil & spasi berlebih."""
+    return " ".join(kw.lower().split())
+
+
 def host_matches(link, domain):
     host = urlparse(link).netloc.lower()
     return host == domain or host.endswith("." + domain)
@@ -99,8 +104,9 @@ def read_history():
 def append_history(rows):
     """Simpan hasil; jika hari ini sudah dicek, hasil lama hari ini diganti."""
     HISTORY.parent.mkdir(exist_ok=True)
-    replace = {(r["tanggal"], r["kata_kunci"]) for r in rows}
-    old = [h for h in read_history() if (h["tanggal"], h["kata_kunci"]) not in replace]
+    replace = {(r["tanggal"], kw_key(r["kata_kunci"])) for r in rows}
+    old = [h for h in read_history()
+           if (h["tanggal"], kw_key(h["kata_kunci"])) not in replace]
     with HISTORY.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
@@ -121,11 +127,12 @@ def fmt_pos(p):
 def build_report(today, rows, history):
     prev_by_kw, best_by_kw = {}, {}
     for h in history:
+        key = kw_key(h["kata_kunci"])
         if h["tanggal"] < today:
-            prev_by_kw[h["kata_kunci"]] = h  # tanggal berurutan, ambil terakhir
+            prev_by_kw[key] = h  # tanggal berurutan, ambil terakhir
         p = to_int(h["posisi"])
-        if p and (h["kata_kunci"] not in best_by_kw or p < best_by_kw[h["kata_kunci"]]):
-            best_by_kw[h["kata_kunci"]] = p
+        if p and (key not in best_by_kw or p < best_by_kw[key]):
+            best_by_kw[key] = p
 
     lines = [
         f"# Laporan Ranking Google — mitrateknik.co.id",
@@ -138,15 +145,15 @@ def build_report(today, rows, history):
     ]
     up = down = top10 = 0
     for r in rows:
-        kw, now = r["kata_kunci"], to_int(r["posisi"])
-        prev = to_int(prev_by_kw.get(kw, {}).get("posisi"))
+        kw, key, now = r["kata_kunci"], kw_key(r["kata_kunci"]), to_int(r["posisi"])
+        prev = to_int(prev_by_kw.get(key, {}).get("posisi"))
         if now and prev:
             diff = prev - now
             change = f"▲ {diff}" if diff > 0 else (f"▼ {-diff}" if diff < 0 else "=")
             up += diff > 0
             down += diff < 0
         elif now and not prev:
-            change = "baru masuk" if kw in prev_by_kw else "—"
+            change = "baru masuk" if key in prev_by_kw else "—"
         elif prev and not now:
             change = "keluar"
             down += 1
@@ -155,8 +162,8 @@ def build_report(today, rows, history):
         top10 += bool(now and now <= 10)
         page = f"[link]({r['url']})" if r["url"] else ""
         lines.append(
-            f"| {kw} | **{fmt_pos(now)}** | {fmt_pos(prev) if kw in prev_by_kw else '—'} | {change} "
-            f"| {best_by_kw.get(kw, '—')} | {r['pesaing_teratas']} | {page} |"
+            f"| {kw} | **{fmt_pos(now)}** | {fmt_pos(prev) if key in prev_by_kw else '—'} | {change} "
+            f"| {best_by_kw.get(key, '—')} | {r['pesaing_teratas']} | {page} |"
         )
     lines += [
         "",
@@ -183,14 +190,14 @@ def notify_telegram(today, rows, history, failed):
     prev = {}
     for h in history:
         if h["tanggal"] < today:
-            prev[h["kata_kunci"]] = to_int(h["posisi"])
+            prev[kw_key(h["kata_kunci"])] = to_int(h["posisi"])
     up = down = top10 = 0
     lines = []
     for r in sorted(rows, key=lambda r: to_int(r["posisi"]) or 999):
-        kw, now = r["kata_kunci"], to_int(r["posisi"])
-        was = prev.get(kw)
+        kw, key, now = r["kata_kunci"], kw_key(r["kata_kunci"]), to_int(r["posisi"])
+        was = prev.get(key)
         mark = ""
-        if kw in prev:
+        if key in prev:
             if now and was:
                 d = was - now
                 mark = f" ▲{d}" if d > 0 else (f" ▼{-d}" if d < 0 else " =")
@@ -232,8 +239,11 @@ def main():
 
     today = datetime.now(WIB).strftime("%Y-%m-%d")
     history = read_history()
-    rows, failed = [], []
+    rows, failed, seen = [], [], set()
     for kw in load_keywords():
+        if kw_key(kw) in seen:  # kata kunci ganda (beda huruf besar/kecil) cukup dicek sekali
+            continue
+        seen.add(kw_key(kw))
         try:
             res = demo_result(kw) if demo else check_keyword(kw, cfg, api_key)
         except Exception as e:  # satu kata kunci gagal jangan hentikan semua
