@@ -186,7 +186,7 @@ const token=()=>store.get('gh_token');
 const $=id=>document.getElementById(id);
 const status=(t,cls='')=>{$('status').className=cls;$('status').textContent=t};
 async function gh(path,opt={}){
-  const r=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+token(),'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.headers||{})}});
+  const r=await fetch(API+path,{cache:'no-store',...opt,headers:{'Authorization':'Bearer '+token(),'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.headers||{})}});
   if(r.status===401)throw new Error('Token tidak valid atau kedaluwarsa. Klik "Hubungkan GitHub".');
   if(r.status===403||r.status===404)throw new Error('Token tidak punya izin ke repo ini (cek izin Actions & Contents).');
   if(!r.ok)throw new Error('GitHub error '+r.status);
@@ -217,7 +217,8 @@ $('dKw').addEventListener('close',async()=>{
   if($('dKw').returnValue!=='save')return;
   let t=$('kwText').value.replace(/\r/g,'').split('\n').map(l=>l.trim()).join('\n').replace(/\n{3,}/g,'\n\n').trim()+'\n';
   status('Menyimpan kata kunci…');
-  try{await gh('/contents/keywords.txt',{method:'PUT',body:JSON.stringify({message:'Ubah kata kunci dari dashboard',content:b64e(t),sha:kwSha,branch:'main'})});
+  try{kwSha=(await (await gh('/contents/keywords.txt?ref=main')).json()).sha;
+    await gh('/contents/keywords.txt',{method:'PUT',body:JSON.stringify({message:'Ubah kata kunci dari dashboard',content:b64e(t),sha:kwSha,branch:'main'})});
     status(`Tersimpan (${kwCount(t)} kata kunci). Klik "Cek ranking sekarang" untuk langsung mengecek.`)}
   catch(e){status(e.message,'err')}
 });
