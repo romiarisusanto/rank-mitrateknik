@@ -1,0 +1,30 @@
+name: Cek Ranking Mingguan
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"   # Senin 07:00 WIB
+  workflow_dispatch:       # tombol "Run workflow" untuk cek manual
+
+permissions:
+  contents: write
+
+jobs:
+  rank:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Cek ranking
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: python rank_checker.py
+      - name: Simpan laporan
+        run: |
+          git config user.name "rank-bot"
+          git config user.email "rank-bot@users.noreply.github.com"
+          git add data reports LAPORAN.md
+          git commit -m "Laporan ranking $(date +%F)" || echo "Tidak ada perubahan"
+          git push
