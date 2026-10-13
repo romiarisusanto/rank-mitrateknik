@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: rank-check
+  cancel-in-progress: false
+
 jobs:
   rank:
     runs-on: ubuntu-latest
@@ -27,4 +31,5 @@ jobs:
           git config user.email "rank-bot@users.noreply.github.com"
           git add data reports LAPORAN.md
           git commit -m "Laporan ranking $(date +%F)" || echo "Tidak ada perubahan"
+          git pull --rebase
           git push
