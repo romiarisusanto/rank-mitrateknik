@@ -97,13 +97,14 @@ def read_history():
 
 
 def append_history(rows):
+    """Simpan hasil; jika hari ini sudah dicek, hasil lama hari ini diganti."""
     HISTORY.parent.mkdir(exist_ok=True)
-    new = not HISTORY.exists()
-    with HISTORY.open("a", newline="", encoding="utf-8") as f:
+    replace = {(r["tanggal"], r["kata_kunci"]) for r in rows}
+    old = [h for h in read_history() if (h["tanggal"], h["kata_kunci"]) not in replace]
+    with HISTORY.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
-        if new:
-            w.writeheader()
-        w.writerows(rows)
+        w.writeheader()
+        w.writerows(old + rows)
 
 
 def to_int(v):
