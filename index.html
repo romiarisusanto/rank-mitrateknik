@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ranking Mitra Teknik</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#5f6b7a;--line:#e3e7ec;--accent:#1f6feb;--up:#1a7f37;--down:#cf222e;--soft:#eef3fb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--ink:#e6e9ee;--muted:#9aa4b2;--line:#2a2f38;--accent:#5b9dff;--up:#3fb950;--down:#f85149;--soft:#1c2433}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted);margin:4px 0 20px;font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.card h2{font-size:16px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-variant-numeric:tabular-nums;font-weight:600}
+tr.click{cursor:pointer}tr.click:hover{background:var(--soft)}
+.up{color:var(--up)}.down{color:var(--down)}.muted{color:var(--muted)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--soft);font-size:12px}
+svg text{fill:var(--muted);font-size:11px}
+.err{color:var(--down)}
+a{color:var(--accent)}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}.tile b{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Ranking Google · mitrateknik.co.id</h1>
+  <p class="sub" id="sub">Memuat data…</p>
+
+  <div class="tiles">
+    <div class="tile"><b id="t1">–</b><span>Kata kunci di halaman 1</span></div>
+    <div class="tile"><b id="t2">–</b><span>Masuk 20 besar</span></div>
+    <div class="tile"><b id="t3" class="up">–</b><span>Naik vs minggu lalu</span></div>
+    <div class="tile"><b id="t4" class="down">–</b><span>Turun vs minggu lalu</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Grafik posisi <select id="kw"></select></h2>
+    <div id="chart"></div>
+  </div>
+
+  <div class="card">
+    <h2>Semua kata kunci <span class="muted" style="font-size:12px;font-weight:400">klik baris untuk lihat grafik</span></h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Kata kunci</th><th>Posisi</th><th>Minggu lalu</th><th>Perubahan</th><th>Terbaik</th><th>Tren</th><th>Pesaing #1</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </div>
+  <p class="sub">Diperbarui otomatis tiap Senin 07:00 WIB. Posisi “20+” = belum masuk 20 besar hasil biasa Google.</p>
+</div>
+
+<script>
+const LIMIT = 20;
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){row.push(f);f=''}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f=''}
+    else if(c!=='\r')f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  const h=rows.shift();return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||''])));
+}
+const fmt=p=>p?String(p):LIMIT+'+';
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function lineChart(points,w,h,small){
+  // points: [{d, p}] p=null jika di luar LIMIT
+  const pad=small?{l:2,r:2,t:2,b:2}:{l:34,r:12,t:12,b:26};
+  const n=points.length, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const x=i=>pad.l+(n<2?iw/2:i*iw/(n-1));
+  const y=p=>pad.t+((p??LIMIT+1)-1)/(LIMIT)*ih;
+  let s=`<svg viewBox="0 0 ${w} ${h}" ${small?`width="${w}" height="${h}"`:'width="100%" style="display:block"'} role="img">`;
+  if(!small){
+    for(const t of [1,5,10,15,20]){s+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${pad.l-8}" y="${y(t)+4}" text-anchor="end">${t}</text>`}
+    s+=`<rect x="${pad.l}" y="${y(1)}" width="${iw}" height="${y(10)-y(1)}" fill="var(--soft)" opacity=".6"/><text x="${w-pad.r-4}" y="${y(1)+14}" text-anchor="end">Halaman 1</text>`;
+    const step=Math.ceil(n/8);
+    points.forEach((p,i)=>{if(i%step===0||i===n-1)s+=`<text x="${x(i)}" y="${h-6}" text-anchor="middle">${p.d.slice(5)}</text>`});
+  }
+  let path='';points.forEach((p,i)=>{if(p.p){path+=(path&&points[i-1]?.p?'L':'M')+x(i)+' '+y(p.p)}});
+  if(path)s+=`<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="${small?1.5:2.5}" stroke-linejoin="round"/>`;
+  points.forEach((p,i)=>{
+    if(p.p)s+=`<circle cx="${x(i)}" cy="${y(p.p)}" r="${small?1.8:4}" fill="var(--accent)"><title>${p.d}: posisi ${p.p}</title></circle>`;
+    else if(!small)s+=`<circle cx="${x(i)}" cy="${y(null)}" r="4" fill="none" stroke="var(--muted)"><title>${p.d}: di luar ${LIMIT} besar</title></circle>`;
+  });
+  return s+'</svg>';
+}
+
+async function main(){
+  let data;
+  try{const r=await fetch('data/history.csv?'+Date.now());if(!r.ok)throw 0;data=parseCSV(await r.text())}
+  catch(e){document.getElementById('sub').innerHTML='<span class="err">Belum ada data. Jalankan workflow “Cek Ranking Mingguan” dulu.</span>';return}
+  const dates=[...new Set(data.map(r=>r.tanggal))].sort();
+  const last=dates.at(-1), prev=dates.at(-2);
+  const byKw={};
+  data.forEach(r=>{(byKw[r.kata_kunci]??={})[r.tanggal]=r});
+  const kws=Object.keys(byKw).filter(k=>byKw[k][last]);
+  let p1=0,p20=0,up=0,down=0;
+  const rows=kws.map(k=>{
+    const now=+byKw[k][last].posisi||null, was=prev&&byKw[k][prev]?(+byKw[k][prev].posisi||null):undefined;
+    const best=Math.min(...Object.values(byKw[k]).map(r=>+r.posisi||Infinity));
+    if(now&&now<=10)p1++; if(now)p20++;
+    let ch='<span class="muted">—</span>';
+    if(was!==undefined){
+      if(now&&was){const d=was-now;if(d>0){up++;ch=`<span class="up">▲ ${d}</span>`}else if(d<0){down++;ch=`<span class="down">▼ ${-d}</span>`}else ch='<span class="muted">=</span>'}
+      else if(now&&!was){up++;ch='<span class="up">baru masuk</span>'}
+      else if(!now&&was){down++;ch='<span class="down">keluar</span>'}
+    }
+    const pts=dates.map(d=>({d,p:byKw[k][d]?(+byKw[k][d].posisi||null):null}));
+    return {k,now,html:`<tr class="click" data-k="${esc(k)}"><td>${esc(k)}</td><td class="num">${now&&now<=10?'<span class="pill">'+now+'</span>':fmt(now)}</td><td class="num muted">${was===undefined?'—':fmt(was)}</td><td>${ch}</td><td class="num">${best===Infinity?'—':best}</td><td>${lineChart(pts,90,26,true)}</td><td class="muted">${esc(byKw[k][last].pesaing_teratas||'')}</td></tr>`};
+  }).sort((a,b)=>(a.now??99)-(b.now??99));
+  document.getElementById('rows').innerHTML=rows.map(r=>r.html).join('');
+  const dd=d=>new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('sub').textContent=`Cek terakhir: ${dd(last)} · ${kws.length} kata kunci · ${dates.length} kali pengecekan · Google Semarang (HP)`;
+  t1.textContent=`${p1}/${kws.length}`;t2.textContent=p20;t3.textContent=prev?up:'–';t4.textContent=prev?down:'–';
+  const sel=document.getElementById('kw');
+  sel.innerHTML=kws.map(k=>`<option>${esc(k)}</option>`).join('');
+  const draw=()=>{const k=sel.value;document.getElementById('chart').innerHTML=lineChart(dates.map(d=>({d,p:byKw[k][d]?(+byKw[k][d].posisi||null):null})),Math.max(320,document.getElementById('chart').clientWidth),260,false)};
+  sel.onchange=draw;draw();addEventListener('resize',draw);
+  document.querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>{sel.value=tr.dataset.k;draw();window.scrollTo({top:sel.getBoundingClientRect().top+scrollY-80,behavior:'smooth'})});
+}
+main();
+</script>
+</body>
+</html>
