@@ -151,7 +151,10 @@ async function main(fresh){
   const dates=[...new Set(data.map(r=>r.tanggal))].sort();
   const last=dates.at(-1), prev=dates.at(-2);
   const byKw={};
-  data.forEach(r=>{(byKw[r.kata_kunci]??={})[r.tanggal]=r});
+  // kelompokkan tanpa membedakan huruf besar/kecil; nama tampil = ejaan terbaru
+  const key=k=>k.toLowerCase().split(/\s+/).filter(Boolean).join(' ');
+  const name={};
+  data.forEach(r=>{const k=key(r.kata_kunci);(byKw[k]??={})[r.tanggal]=r;name[k]=r.kata_kunci});
   const kws=Object.keys(byKw).filter(k=>byKw[k][last]);
   let p1=0,p20=0,up=0,down=0;
   const rows=kws.map(k=>{
@@ -165,14 +168,14 @@ async function main(fresh){
       else if(!now&&was){down++;ch='<span class="down">keluar</span>'}
     }
     const pts=dates.map(d=>({d,p:byKw[k][d]?(+byKw[k][d].posisi||null):null}));
-    return {k,now,html:`<tr class="click" data-k="${esc(k)}"><td>${esc(k)}</td><td class="num">${now&&now<=10?'<span class="pill">'+now+'</span>':fmt(now)}</td><td class="num muted">${was===undefined?'—':fmt(was)}</td><td>${ch}</td><td class="num">${best===Infinity?'—':best}</td><td>${lineChart(pts,90,26,true)}</td><td class="muted">${esc(byKw[k][last].pesaing_teratas||'')}</td></tr>`};
+    return {k,now,html:`<tr class="click" data-k="${esc(k)}"><td>${esc(name[k])}</td><td class="num">${now&&now<=10?'<span class="pill">'+now+'</span>':fmt(now)}</td><td class="num muted">${was===undefined?'—':fmt(was)}</td><td>${ch}</td><td class="num">${best===Infinity?'—':best}</td><td>${lineChart(pts,90,26,true)}</td><td class="muted">${esc(byKw[k][last].pesaing_teratas||'')}</td></tr>`};
   }).sort((a,b)=>(a.now??99)-(b.now??99));
   document.getElementById('rows').innerHTML=rows.map(r=>r.html).join('');
   const dd=d=>new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   document.getElementById('sub').textContent=`Cek terakhir: ${dd(last)} · ${kws.length} kata kunci · ${dates.length} kali pengecekan · Google Semarang (HP)`;
   t1.textContent=`${p1}/${kws.length}`;t2.textContent=p20;t3.textContent=prev?up:'–';t4.textContent=prev?down:'–';
   const sel=document.getElementById('kw');
-  sel.innerHTML=kws.map(k=>`<option>${esc(k)}</option>`).join('');
+  sel.innerHTML=kws.map(k=>`<option value="${esc(k)}">${esc(name[k])}</option>`).join('');
   const draw=()=>{const k=sel.value;document.getElementById('chart').innerHTML=lineChart(dates.map(d=>({d,p:byKw[k][d]?(+byKw[k][d].posisi||null):null})),Math.max(320,document.getElementById('chart').clientWidth),260,false)};
   const keep=sel.dataset.v;if(keep&&kws.includes(keep))sel.value=keep;
   sel.onchange=()=>{sel.dataset.v=sel.value;draw()};draw();onresize=draw;
