@@ -168,6 +168,60 @@ def build_report(today, rows, history):
     ]
     return "\n".join(lines) + "\n"
 
+DASHBOARD = "https://romiarisusanto.github.io/rank-mitrateknik/"
+
+
+def notify_telegram(today, rows, history, failed):
+    """Kirim ringkasan ke Telegram (jika TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_ID diset)."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat:
+        return
+    import html
+    import requests
+
+    prev = {}
+    for h in history:
+        if h["tanggal"] < today:
+            prev[h["kata_kunci"]] = to_int(h["posisi"])
+    up = down = top10 = 0
+    lines = []
+    for r in sorted(rows, key=lambda r: to_int(r["posisi"]) or 999):
+        kw, now = r["kata_kunci"], to_int(r["posisi"])
+        was = prev.get(kw)
+        mark = ""
+        if kw in prev:
+            if now and was:
+                d = was - now
+                mark = f" ▲{d}" if d > 0 else (f" ▼{-d}" if d < 0 else " =")
+                up += d > 0
+                down += d < 0
+            elif now and not was:
+                mark, up = " 🆕", up + 1
+            elif was and not now:
+                mark, down = " ⬇️keluar", down + 1
+        top10 += bool(now and now <= 10)
+        pos = f"<b>{now}</b>" if now else "20+"
+        lines.append(f"• {html.escape(kw)}: {pos}{mark}")
+    text = (
+        f"📊 <b>Ranking Google mitrateknik.co.id</b>\n{today} · Semarang (HP)\n\n"
+        f"Halaman 1: <b>{top10}/{len(rows)}</b> · ▲ {up} naik · ▼ {down} turun\n\n"
+        + "\n".join(lines)
+    )
+    if failed:
+        text += f"\n\n⚠️ Gagal dicek: {html.escape(', '.join(failed))}"
+    text += f'\n\n<a href="{DASHBOARD}">Buka dashboard</a>'
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat, "text": text, "parse_mode": "HTML",
+                  "disable_web_page_preview": True},
+            timeout=30,
+        )
+        print("Telegram:", r.status_code)
+    except Exception as e:  # notifikasi gagal jangan gagalkan cek
+        print("Telegram gagal:", e)
+
 
 def main():
     demo = "--demo" in sys.argv
@@ -178,12 +232,13 @@ def main():
 
     today = datetime.now(WIB).strftime("%Y-%m-%d")
     history = read_history()
-    rows = []
+    rows, failed = [], []
     for kw in load_keywords():
         try:
             res = demo_result(kw) if demo else check_keyword(kw, cfg, api_key)
         except Exception as e:  # satu kata kunci gagal jangan hentikan semua
             print(f"[GAGAL] {kw}: {e}")
+            failed.append(kw)
             continue
         row = {"tanggal": today, "kata_kunci": kw, **res}
         rows.append(row)
@@ -197,6 +252,7 @@ def main():
     (REPORTS / f"{today}.md").write_text(report, encoding="utf-8")
     (ROOT / "LAPORAN.md").write_text(report, encoding="utf-8")
     print("Laporan tersimpan.")
+    notify_telegram(today, rows, history, failed)
 
 
 if __name__ == "__main__":
