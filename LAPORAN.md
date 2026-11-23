@@ -1,23 +1,23 @@
 # Laporan Ranking Google — mitrateknik.co.id
 
-**Tanggal cek:** 2026-11-16  
+**Tanggal cek:** 2026-11-23  
 **Lokasi:** Semarang, Central Java, Indonesia · **Perangkat:** mobile
 
 | Kata kunci | Posisi | Minggu lalu | Perubahan | Terbaik | Pesaing #1 | Halaman |
 |---|---|---|---|---|---|---|
-| jual cctv di semarang | **8** | > top 20 | baru masuk | 8 | www.tokopedia.com | [link](https://mitrateknik.co.id/produk/cctv-semarang) |
-| pasang cctv semarang | **8** | > top 20 | baru masuk | 8 | www.cctvgaruda.com | [link](https://mitrateknik.co.id/produk/cctv-semarang/paket-cctv-semarang) |
-| Mesin absen semarang | **4** | 4 | = | 4 | www.hitechcomputer.co.id | [link](https://mitrateknik.co.id/produk/mesin-absen-semarang) |
-| akses pintu semarang | **1** | 1 | = | 1 |  | [link](https://mitrateknik.co.id/produk/akses-pintu-semarang) |
-| smart door lock semarang | **> top 20** | 2 | keluar | 1 | s.shopee.co.id |  |
-| Alat patroli semarang | **1** | > top 20 | baru masuk | 1 |  | [link](https://mitrateknik.co.id/menu-slide/sistem-keamanan-semarang) |
-| Alarm keamanan semarang | **1** | 1 | = | 1 |  | [link](https://mitrateknik.co.id/produk/alarm-kebakaran-semarang/panel-alarm-kebakaran) |
-| Alarm kebakaran semarang | **5** | 6 | ▲ 1 | 4 | www.bromindo.com | [link](https://mitrateknik.co.id/produk/alarm-kebakaran-semarang/sensor-alarm-kebakaran) |
-| Pintu otomatis semarang | **8** | 4 | ▼ 4 | 2 | anekapintu.com | [link](https://mitrateknik.co.id/component/content/article/smart-door-lock-semarang?catid=26&Itemid=101) |
-| Gate kartu perumahan semarang | **9** | 1 | ▼ 8 | 1 | id.maptons.com | [link](https://mitrateknik.co.id/menu-slide/gate-parking-system) |
-| Pintu pagar otomatis semarang | **2** | 7 | ▲ 5 | 2 | pintulipatrolling.com | [link](https://mitrateknik.co.id/component/content/article/jual-mesin-pintu-kaca-otomatis-autodoor-di-semarang?catid=50&Itemid=101) |
-| Pintu kaca otomatis semarang | **2** | 5 | ▲ 3 | 2 | pintuotomatissemarang.wordpress.com | [link](https://mitrateknik.co.id/produk/pintu-pagar-otomatis-semarang) |
+| jual cctv di semarang | **> top 20** | 8 | keluar | 8 | www.tokopedia.com |  |
+| pasang cctv semarang | **> top 20** | 8 | keluar | 8 | www.instagram.com |  |
+| Mesin absen semarang | **> top 20** | 4 | keluar | 4 | www.facebook.com |  |
+| akses pintu semarang | **> top 20** | 1 | keluar | 1 | pintugarasiotomatis.com |  |
+| smart door lock semarang | **> top 20** | > top 20 | — | 1 | www.facebook.com |  |
+| Alat patroli semarang | **> top 20** | 1 | keluar | 1 | www.tempo.co |  |
+| Alarm keamanan semarang | **> top 20** | 1 | keluar | 1 | www.matrixfirealarm.com |  |
+| Alarm kebakaran semarang | **> top 20** | 5 | keluar | 4 | www.matrixfirealarm.com |  |
+| Pintu otomatis semarang | **2** | 8 | ▲ 6 | 2 | pintuotomatissemarang.wordpress.com | [link](https://mitrateknik.co.id/produk/pintu-pagar-otomatis-semarang) |
+| Gate kartu perumahan semarang | **> top 20** | 9 | keluar | 1 | www.facebook.com |  |
+| Pintu pagar otomatis semarang | **> top 20** | 2 | keluar | 2 | jualautogate.com |  |
+| Pintu kaca otomatis semarang | **1** | 2 | ▲ 1 | 1 |  | [link](https://mitrateknik.co.id/produk/pintu-pagar-otomatis-semarang) |
 
-**Ringkasan:** 11 dari 12 kata kunci di halaman 1 Google · 3 naik · 3 turun.
+**Ringkasan:** 2 dari 12 kata kunci di halaman 1 Google · 2 naik · 9 turun.
 
 Riwayat lengkap: [data/history.csv](data/history.csv) · Arsip mingguan: folder [reports/](reports/)
